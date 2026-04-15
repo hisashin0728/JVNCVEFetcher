@@ -1,0 +1,112 @@
+openapi: 3.0.0
+info:
+  title: MyJVN API - 脆弱性対策詳細情報
+  description: >-
+    JVN iPedia（JVNDB）に登録されている脆弱性対策の詳細情報を取得する
+    MyJVN API（getVulnDetailInfo）です。
+    JVNDB ID を指定して、CVE 番号・CVSS スコア・影響を受ける製品・対策情報・
+    関連する CWE 分類などを含む詳細データを XML（VULDEF 形式）で取得できます。
+  version: "1.0"
+servers:
+  - url: https://jvndb.jvn.jp
+paths:
+  /myjvn:
+    get:
+      operationId: GetMyJVNVulnDetailInfo
+      summary: MyJVN API から脆弱性対策詳細情報を取得する
+      description: |-
+        JVNDB ID（例: JVNDB-2024-001234）を指定して、JVN iPedia に登録されている
+        脆弱性対策の詳細情報を VULDEF-Document 形式（XML）で返します。
+
+        取得できる詳細情報：
+        - VulinfoID: JVNDB 識別 ID
+        - Title: 脆弱性タイトル
+        - Overview: 脆弱性の概要説明
+        - Affected/AffectedItem: 影響を受ける製品（名称・CPE・バージョン範囲）
+        - Impact/Cvss (version="3.0"):
+          - Severity: 深刻度（Critical / High / Medium / Low）
+          - Base: CVSSv3 基本スコア（0.0〜10.0）
+          - Vector: CVSS ベクター文字列
+        - ImpactItem/Description: 想定される影響の説明
+        - Solution: 対策情報
+        - Related: 関連情報
+          - type="advisory": CVE 番号・NVD URL
+          - type="cwe": CWE 分類（CWE-ID・タイトル・URL）
+        - History: 更新履歴
+        - DateFirstPublished: JVN iPedia 初回登録日
+        - DateLastUpdated: 最終更新日
+        - DatePublic: 公表日（発見日）
+
+        【注意】
+        - vulnId は JVNDB-YYYY-NNNNNN 形式で指定してください（例: JVNDB-2024-001234）。
+        - CVSSv3 スコアが複数 CVE に紐付く場合、最も深刻度の高い CVE の値が返ります。
+        - 概要情報一覧は GetJVNDBVulnerabilities スキルを使用してください。
+
+        #ExamplePrompts JVNDB-2024-001234 の脆弱性詳細情報を取得してください
+        #ExamplePrompts CVE-2024-0321 に対応する JVNDB の詳細情報を調べてください
+        #ExamplePrompts JVNDB ID を指定して脆弱性対策の詳細情報を確認してください
+        #ExamplePrompts JVNDB-2025-000100 の CVSSv3 スコアと影響を受ける製品を取得してください
+      parameters:
+        - in: query
+          name: method
+          required: true
+          schema:
+            type: string
+            enum:
+              - getVulnDetailInfo
+            default: getVulnDetailInfo
+          description: >-
+            API メソッド名。常に "getVulnDetailInfo" を指定してください。
+        - in: query
+          name: feed
+          required: true
+          schema:
+            type: string
+            enum:
+              - hnd
+            default: hnd
+          description: >-
+            フィードバージョン。常に "hnd" を指定してください。
+        - in: query
+          name: vulnId
+          required: true
+          schema:
+            type: string
+          description: >-
+            取得対象の JVNDB 脆弱性 ID。JVNDB-YYYY-NNNNNN 形式で指定してください。
+            例: JVNDB-2024-001234, JVNDB-2025-000100
+            GetJVNDBVulnerabilities スキルで取得した sec:identifier の値を使用できます。
+        - in: query
+          name: lang
+          required: false
+          schema:
+            type: string
+            enum:
+              - ja
+              - en
+            default: ja
+          description: >-
+            レスポンス言語。ja=日本語（デフォルト）、en=英語。
+      responses:
+        "200":
+          description: >-
+            脆弱性対策詳細情報（VULDEF-Document XML 形式）。
+            <Vulinfo> 要素に以下のフィールドが含まれます：
+            - VulinfoID: JVNDB ID
+            - Title: 脆弱性タイトル
+            - Overview: 概要（VulinfoDescription/Overview）
+            - Affected[]/AffectedItem: 影響製品（Name, ProductName, Cpe, VersionNumber）
+            - Impact/Cvss[@version="3.0"]: CVSSv3 情報（Severity, Base, Vector）
+            - ImpactItem/Description: 影響の説明
+            - Solution/SolutionItem/Description: 対策情報
+            - Related/RelatedItem[@type="advisory"]: CVE・NVD URL
+            - Related/RelatedItem[@type="cwe"]: CWE 分類
+            - History/HistoryItem: 更新履歴
+            - DateFirstPublished: 初回登録日
+            - DateLastUpdated: 最終更新日
+            - DatePublic: 公表日
+          content:
+            application/xml:
+              schema:
+                type: string
+                description: VULDEF-Document 形式の XML レスポンス

@@ -1,0 +1,125 @@
+openapi: 3.0.0
+info:
+  title: MyJVN API - ベンダ一覧
+  description: >-
+    JVN iPedia（JVNDB）に登録されているベンダ（製品開発者）の一覧を取得する
+    MyJVN API（getVendorList）です。
+    フィルタリング条件に該当するベンダ名・CPE 識別子・ベンダ ID のリストを取得できます。
+    取得したベンダ ID（vid）は脆弱性対策概要情報一覧（getVulnOverviewList）での
+    絞り込みに活用できます。総ベンダ数は 32,000 件以上あります。
+  version: "1.0"
+servers:
+  - url: https://jvndb.jvn.jp
+paths:
+  /myjvn:
+    get:
+      operationId: GetMyJVNVendorList
+      summary: MyJVN API からベンダ一覧を取得する
+      description: |-
+        JVN iPedia に脆弱性情報が登録されているベンダ（製品開発者）の一覧を返します。
+        フィルタリング条件に当てはまるベンダ名・CPE 識別子・ベンダ ID のリストが
+        XML 形式で返されます。
+
+        各エントリには以下が含まれます：
+        - vname: ベンダ名（例: Microsoft, Adobe, Apache）
+        - cpe: CPE ベンダ識別子（例: cpe:/:microsoft）
+        - vid: ベンダ ID（例: 1234） 
+          ※ getVulnOverviewList の vendorId パラメータに使用できます
+
+        【利用例】
+        1. キーワードでベンダを検索して vid を取得
+        2. 取得した vid を GetJVNDBVulnerabilities スキルの vendorId に指定して
+           特定ベンダの脆弱性情報を絞り込み取得
+
+        【注意】
+        - keyword パラメータは CPE 識別子（小文字）に対してマッチングします。
+          例: "microsoft" → cpe:/:microsoft にマッチするベンダが返ります。
+        - 正確なベンダ名で検索するには cpeVendor パラメータを使用してください。
+        - 総ベンダ数は 32,000 件以上あるため、keyword や cpeVendor での絞り込みを推奨します。
+
+        #ExamplePrompts Microsoft に関するベンダ情報を取得してください
+        #ExamplePrompts Adobe のベンダ ID を MyJVN API で調べてください
+        #ExamplePrompts JVN iPedia に登録されているベンダの一覧を取得してください
+        #ExamplePrompts Apache のベンダ ID を取得してください
+      parameters:
+        - in: query
+          name: method
+          required: true
+          schema:
+            type: string
+            enum:
+              - getVendorList
+            default: getVendorList
+          description: >-
+            API メソッド名。常に "getVendorList" を指定してください。
+        - in: query
+          name: feed
+          required: true
+          schema:
+            type: string
+            enum:
+              - hnd
+            default: hnd
+          description: >-
+            フィードバージョン。常に "hnd" を指定してください。
+        - in: query
+          name: keyword
+          required: false
+          schema:
+            type: string
+          description: >-
+            キーワード絞り込み。CPE 識別子（小文字）に対してマッチングします。
+            例: "microsoft" → cpe:/:microsoft を含むベンダが返ります。
+        - in: query
+          name: cpeVendor
+          required: false
+          schema:
+            type: string
+          description: >-
+            CPE ベンダ識別子で正確に絞り込みます。
+            例: "microsoft" → vname が Microsoft のベンダを取得。
+        - in: query
+          name: startItem
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: >-
+            取得開始位置（1 始まり）。ページネーション時に使用します。
+            レスポンスの status:Status の totalRes に総件数が入ります。
+        - in: query
+          name: maxCountItem
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 50
+          description: >-
+            1 回のリクエストで取得する最大件数（1〜50、デフォルト 50）。
+        - in: query
+          name: lang
+          required: false
+          schema:
+            type: string
+            enum:
+              - ja
+              - en
+            default: ja
+          description: >-
+            レスポンス言語。ja=日本語（デフォルト）、en=英語。
+      responses:
+        "200":
+          description: >-
+            ベンダ一覧（XML 形式）。
+            <VendorInfo> 要素の下に複数の <Vendor> 要素が含まれます：
+            - vname: ベンダ名
+            - cpe: CPE ベンダ識別子
+            - vid: ベンダ ID（getVulnOverviewList の vendorId に使用可能）
+            最後の status:Status タグに totalRes（総件数）と totalResRet（取得件数）が含まれます。
+          content:
+            application/xml:
+              schema:
+                type: string
+                description: XML 形式のベンダ一覧レスポンス

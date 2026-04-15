@@ -1,0 +1,192 @@
+openapi: 3.0.0
+info:
+  title: MyJVN API - 統計データ (CVSSv3 統計情報)
+  description: >-
+    JVN iPedia（JVNDB）に登録されている脆弱性対策情報を深刻度（CVSSv3）・
+    登録件数・CWE 種別ごとに集計した統計データを取得する MyJVN API（getStatistics）です。
+    年別・四半期別・月別の集計データを取得でき、セキュリティトレンドの分析に活用できます。
+    CVSSv3 スコア別（Critical / High / Medium / Low）の件数分布を確認できます。
+  version: "1.0"
+servers:
+  - url: https://jvndb.jvn.jp
+paths:
+  /myjvn:
+    get:
+      operationId: GetMyJVNStatisticsCvss3
+      summary: MyJVN API から CVSSv3 統計データを取得する
+      description: |-
+        JVN iPedia に登録されている脆弱性対策情報の統計データを返します。
+        CVSSv3 深刻度別集計（sumCvss）、登録件数集計（sumJvnDb）、
+        CWE 分類集計（sumCwe）、全集計（sumAll）をサポートします。
+        年別（type=y）・四半期別（type=q）・月別（type=m）の粒度で取得できます。
+
+        【CVSSv3 統計 (theme=sumCvss) のレスポンス例】
+        - cntAll: 全件数
+        - cntC: Critical（CVSS 9.0〜10.0）の件数
+        - cntH: High（CVSS 7.0〜8.9）の件数
+        - cntM: Medium（CVSS 4.0〜6.9）の件数
+        - cntL: Low（CVSS 0.1〜3.9）の件数
+        - cntN: スコアなしの件数
+        - resDataTotal: データベース全体の累計（vulinfo / vendor / product 総数）
+
+        【日付パラメータの指定方法】
+        - 年別（type=y）: datePublicStartY / datePublicEndY（例: 2024）
+        - 四半期別（type=q）: datePublicStartY + datePublicStartQ / datePublicEndY + datePublicEndQ
+          （Q は 1〜4 の整数）
+        - 月別（type=m）: datePublicStartY + datePublicStartM / datePublicEndY + datePublicEndM
+          （M は 1〜12 の整数）
+
+        【注意】
+        - theme, type, 開始・終了日付の全パラメータを必ず指定してください。
+        - datePublicStartY と datePublicEndY は必須です（type=y の場合）。
+
+        #ExamplePrompts 2024 年の CVSSv3 深刻度別の脆弱性統計を取得してください
+        #ExamplePrompts 2023 年から 2024 年の年別 CVSSv3 統計データを取得してください
+        #ExamplePrompts 過去 3 年間の Critical な脆弱性の件数推移を調べてください
+        #ExamplePrompts 2024 年 1 月から 3 月の月別 CVSS 統計を取得してください
+        #ExamplePrompts JVN iPedia に登録されている脆弱性の深刻度分布を確認してください
+      parameters:
+        - in: query
+          name: method
+          required: true
+          schema:
+            type: string
+            enum:
+              - getStatistics
+            default: getStatistics
+          description: >-
+            API メソッド名。常に "getStatistics" を指定してください。
+        - in: query
+          name: feed
+          required: true
+          schema:
+            type: string
+            enum:
+              - hnd
+            default: hnd
+          description: >-
+            フィードバージョン。常に "hnd" を指定してください。
+        - in: query
+          name: theme
+          required: true
+          schema:
+            type: string
+            enum:
+              - sumCvss
+              - sumJvnDb
+              - sumCwe
+              - sumAll
+            default: sumCvss
+          description: >-
+            集計テーマを指定します。
+            - sumCvss: CVSSv3 深刻度別統計（Critical/High/Medium/Low 件数）
+            - sumJvnDb: JVN iPedia 登録件数統計
+            - sumCwe: CWE 脆弱性種別統計
+            - sumAll: 全テーマの統計（sumCvss + sumJvnDb + sumCwe）
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum:
+              - y
+              - q
+              - m
+            default: y
+          description: >-
+            集計期間の粒度を指定します。
+            - y: 年別（datePublicStartY / datePublicEndY を使用）
+            - q: 四半期別（datePublicStartY + datePublicStartQ を使用）
+            - m: 月別（datePublicStartY + datePublicStartM を使用）
+        - in: query
+          name: datePublicStartY
+          required: true
+          schema:
+            type: integer
+            minimum: 1998
+          description: >-
+            集計開始年（西暦 4 桁）。例: 2024
+            type=y の場合に必須です。
+        - in: query
+          name: datePublicEndY
+          required: true
+          schema:
+            type: integer
+            minimum: 1998
+          description: >-
+            集計終了年（西暦 4 桁）。例: 2024
+            type=y の場合に必須です。datePublicStartY 以上を指定してください。
+        - in: query
+          name: datePublicStartM
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: >-
+            集計開始月（1〜12）。type=m の場合に使用します。
+            datePublicStartY と組み合わせて指定してください。
+        - in: query
+          name: datePublicEndM
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: >-
+            集計終了月（1〜12）。type=m の場合に使用します。
+            datePublicEndY と組み合わせて指定してください。
+        - in: query
+          name: datePublicStartQ
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+          description: >-
+            集計開始四半期（1〜4）。type=q の場合に使用します。
+            datePublicStartY と組み合わせて指定してください。
+        - in: query
+          name: datePublicEndQ
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+          description: >-
+            集計終了四半期（1〜4）。type=q の場合に使用します。
+            datePublicEndY と組み合わせて指定してください。
+        - in: query
+          name: lang
+          required: false
+          schema:
+            type: string
+            enum:
+              - ja
+              - en
+            default: ja
+          description: >-
+            レスポンス言語。ja=日本語（デフォルト）、en=英語。
+      responses:
+        "200":
+          description: >-
+            統計データ（XML 形式）。theme によって返される要素が異なります。
+
+            theme=sumCvss の場合：
+            - mjstat:sumCvss/mjstat:title: 統計タイトル
+            - mjstat:sumCvss/mjstat:resDataTotal[@vulinfo, @vendor, @product]: 累計総数
+            - mjstat:sumCvss/mjstat:resData[@date, @cntAll, @cntC, @cntH, @cntM, @cntL, @cntN]:
+              - date: 集計期間（年/四半期/月）
+              - cntAll: 全脆弱性件数
+              - cntC: Critical 件数（CVSS 9.0〜10.0）
+              - cntH: High 件数（CVSS 7.0〜8.9）
+              - cntM: Medium 件数（CVSS 4.0〜6.9）
+              - cntL: Low 件数（CVSS 0.1〜3.9）
+              - cntN: スコアなし件数
+
+            最後の status:Status タグに retCd（0=成功）、errMsg（エラーメッセージ）が含まれます。
+          content:
+            application/xml:
+              schema:
+                type: string
+                description: CVSSv3 統計データの XML レスポンス

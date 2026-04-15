@@ -2,19 +2,46 @@ Descriptor:
   Name: JVNCVEFetcher
   DisplayName: JVN CVE Fetcher
   Description: >-
-    JPCERT/CC および JVN iPedia（JVNDB）から CVE 脆弱性情報を取得するプラグインです。
-    MyJVN API を通じて、JVN iPedia に登録されている脆弱性情報と
-    IPA/JPCERT が発行するセキュリティ警戒情報を検索・取得できます。
-    発見日・更新日・発行日による期間フィルタリング、キーワード検索、
-    CVSS 深刻度によるフィルタリングが可能です。
+    JVN iPedia（JVNDB）および JPCERT/CC から脆弱性・セキュリティ情報を取得する
+    包括的プラグインです。MyJVN API（https://jvndb.jvn.jp/apis/index.html）を通じて
+    以下の 6 つの機能を提供します。
+
+    1. 注意警戒情報一覧の取得（MyJVN getAlertList）: IPA/JPCERT 発行の注意警戒情報一覧。
+    2. JPCERT/CC 注意喚起 RSS: JPCERT/CC が直接発行するセキュリティ注意喚起フィード。
+    3. ベンダ一覧の取得（MyJVN getVendorList）: JVN iPedia 登録ベンダの一覧・検索。
+    4. 脆弱性対策概要情報一覧の取得（MyJVN getVulnOverviewList）: CVE/CVSS フィルタ付き脆弱性概要。
+    5. 脆弱性対策詳細情報の取得（MyJVN getVulnDetailInfo）: JVNDB ID 指定の詳細情報取得。
+    6. 統計データの取得（MyJVN getStatistics CVSSv3）: 年別/月別 CVSSv3 深刻度統計。
   SupportedAuthTypes:
     - None
 
 SkillGroups:
+  # 1. MyJVN API - 注意警戒情報一覧 (IPA/JPCERT 集約)
+  - Format: API
+    Settings:
+      OpenApiSpecUrl: https://raw.githubusercontent.com/hisashin0728/JVNCVEFetcher/refs/heads/main/JVNCVEFetcher_myjvn_alert_openapi.yaml
+
+  # 2. JPCERT/CC 注意喚起 RSS (JPCERT 直接フィード)
+  - Format: API
+    Settings:
+      OpenApiSpecUrl: https://raw.githubusercontent.com/hisashin0728/JVNCVEFetcher/refs/heads/main/JVNCVEFetcher_alert_openapi.yaml
+
+  # 3. MyJVN API - ベンダ一覧
+  - Format: API
+    Settings:
+      OpenApiSpecUrl: https://raw.githubusercontent.com/hisashin0728/JVNCVEFetcher/refs/heads/main/JVNCVEFetcher_vendor_openapi.yaml
+
+  # 4. MyJVN API - 脆弱性対策概要情報一覧
   - Format: API
     Settings:
       OpenApiSpecUrl: https://raw.githubusercontent.com/hisashin0728/JVNCVEFetcher/refs/heads/main/JVNCVEFetcher_vuln_openapi.yaml
 
+  # 5. MyJVN API - 脆弱性対策詳細情報
   - Format: API
     Settings:
-      OpenApiSpecUrl: https://raw.githubusercontent.com/hisashin0728/JVNCVEFetcher/refs/heads/main/JVNCVEFetcher_alert_openapi.yaml
+      OpenApiSpecUrl: https://raw.githubusercontent.com/hisashin0728/JVNCVEFetcher/refs/heads/main/JVNCVEFetcher_detail_openapi.yaml
+
+  # 6. MyJVN API - 統計データ (CVSSv3 統計情報)
+  - Format: API
+    Settings:
+      OpenApiSpecUrl: https://raw.githubusercontent.com/hisashin0728/JVNCVEFetcher/refs/heads/main/JVNCVEFetcher_stats_openapi.yaml
