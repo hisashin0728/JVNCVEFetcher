@@ -13,8 +13,8 @@ Descriptor:
 SkillGroups:
   - Format: API
     Settings:
-      OpenApiSpecUrl: https://<YOUR-HOST>/JVNCVEFetcher_vuln_openapi.yaml
+      OpenApiSpecUrl: https://raw.githubusercontent.com/hisashin0728/JVNCVEFetcher/refs/heads/main/JVNCVEFetcher_vuln_openapi.yaml
 
   - Format: API
     Settings:
-      OpenApiSpecUrl: https://<YOUR-HOST>/JVNCVEFetcher_alert_openapi.yaml
+      OpenApiSpecUrl: https://raw.githubusercontent.com/hisashin0728/JVNCVEFetcher/refs/heads/main/JVNCVEFetcher_alert_openapi.yaml
