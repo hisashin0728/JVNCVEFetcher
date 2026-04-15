@@ -19,13 +19,26 @@ paths:
         各エントリには JVNDB ID、タイトル、説明、CVE 番号、参照 URL、CVSS スコア、
         発見日 (dc:date)、登録日 (dcterms:issued)、更新日 (dcterms:modified) が含まれます。
 
+        【IMPORTANT - 必須のパラメータ送信ルール】
+        このAPIは rangeDatePublic / rangeDatePublished / rangeDateFirstPublished の3つを
+        AND条件で評価します。パラメータを省略するとサーバー側で自動的に "w"（過去1週間）が
+        適用され、想定より大幅に絞り込まれます（0件になる場合があります）。
+        
+        必ず以下のルールで3つとも明示してください：
+        - 発見日（公表日）で絞り込む場合:
+            rangeDatePublic=m, rangeDatePublished=n, rangeDateFirstPublished=n
+        - 更新日で絞り込む場合:
+            rangeDatePublic=n, rangeDatePublished=m, rangeDateFirstPublished=n
+        - 全期間取得する場合:
+            rangeDatePublic=n, rangeDatePublished=n, rangeDateFirstPublished=n
+        - 過去1週間の発見日で絞り込む場合:
+            rangeDatePublic=w, rangeDatePublished=n, rangeDateFirstPublished=n
+
         【日付フィルタリング】
-        - rangeDatePublic / rangeDatePublished / rangeDateFirstPublished はすべて相対期間指定です。
-          w=過去1週間、m=過去1ヶ月、n=無制限（全期間）。
+        - w=過去1週間、m=過去1ヶ月、n=無制限（全期間）。
         - 特定の日時以降のデータを取得するには rangeDatePublic=n を指定し、
-          returned エントリの dc:date フィールドで日時フィルタリングを行ってください。
+          レスポンスの dc:date フィールドで日時フィルタリングを行ってください。
           エントリは dc:date の降順（新しい順）で返されます。
-        - より古い期間のデータには startItem でページネーションを使用してください。
         - レスポンスの status:Status の totalRes に総件数が入ります。
 
         【重要】
@@ -61,7 +74,7 @@ paths:
             フィードバージョン。常に "hnd" を指定してください。
         - in: query
           name: rangeDatePublic
-          required: false
+          required: true
           schema:
             type: string
             enum:
@@ -70,13 +83,14 @@ paths:
               - n
             default: m
           description: >-
-            発見日（公表日）の期間フィルタ。
-            w=過去1週間、m=過去1ヶ月（デフォルト）、n=無制限（全期間）。
-            特定日時以降のデータを取得したい場合は n を指定し、
-            レスポンスの dc:date フィールドで絞り込んでください。
+            発見日（公表日）の期間フィルタ（必須）。
+            w=過去1週間、m=過去1ヶ月、n=無制限（全期間）。
+            発見日で絞り込む場合は m または w を指定し、
+            rangeDatePublished=n かつ rangeDateFirstPublished=n を必ず併せて指定してください。
+            絞り込まない場合は n を指定してください。
         - in: query
           name: rangeDatePublished
-          required: false
+          required: true
           schema:
             type: string
             enum:
@@ -85,11 +99,13 @@ paths:
               - n
             default: n
           description: >-
-            更新日の期間フィルタ。
-            w=過去1週間、m=過去1ヶ月、n=無制限（デフォルト）。
+            更新日の期間フィルタ（必須）。
+            w=過去1週間、m=過去1ヶ月、n=無制限（全期間）。
+            発見日（rangeDatePublic）で絞り込む場合は必ず n を指定してください。
+            省略するとサーバー側で w（過去1週間）が適用され 0件になる場合があります。
         - in: query
           name: rangeDateFirstPublished
-          required: false
+          required: true
           schema:
             type: string
             enum:
@@ -98,8 +114,10 @@ paths:
               - n
             default: n
           description: >-
-            JVN iPedia 登録日（発行日）の期間フィルタ。
-            w=過去1週間、m=過去1ヶ月、n=無制限（デフォルト）。
+            JVN iPedia 登録日（発行日）の期間フィルタ（必須）。
+            w=過去1週間、m=過去1ヶ月、n=無制限（全期間）。
+            発見日（rangeDatePublic）で絞り込む場合は必ず n を指定してください。
+            省略するとサーバー側で w（過去1週間）が適用され 0件になる場合があります。
         - in: query
           name: keyword
           required: false
