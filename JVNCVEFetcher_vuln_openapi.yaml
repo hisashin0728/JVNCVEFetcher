@@ -186,7 +186,7 @@ paths:
             - description: 脆弱性の詳細説明
             - sec:references source="CVE": CVE 番号と NVD URL
             - sec:cvss score: CVSS スコア（score 属性）と深刻度（severity 属性）
-            - dc:date: 発見日（公表日）※日時によるフィルタリングにはこのフィールドを使用
+            - dc:date: 発見日（公表日）
             - dcterms:issued: JVN iPedia 登録日
             - dcterms:modified: JVN iPedia 最終更新日
             - link: JVNDB エントリの URL
