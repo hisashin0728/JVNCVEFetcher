@@ -61,9 +61,9 @@ Microsoft Security Copilot 用カスタムプラグインです。\
 | `rangeDatePublished` | 更新日の期間フィルタ **【必須】** | `w` / `m` / `n` | `n` |
 | `rangeDateFirstPublished` | JVN iPedia 登録日の期間フィルタ **【必須】** | `w` / `m` / `n` | `n` |
 | `keyword` | キーワード検索（製品名、ベンダ名、CVE番号など） | 任意の文字列 | — |
-| `severity` | CVSS 深刻度フィルタ（CVSSv3 基準） | `c`=緊急 / `h`=重要 / `m`=警告 / `l`=注意 / `n`=なし | `n` |
+| `severity` | CVSS 深刻度フィルタ（CVSSv3 基準）**【必須】** | `c`=緊急 / `h`=重要 / `m`=警告 / `l`=注意 | `h` |
 | `startItem` | ページネーション開始位置 | 整数（1〜） | `1` |
-| `maxCountItem` | 取得件数（最大50件） | 1〜50 | `50` |
+| `maxCountItem` | 取得件数（最大10件） | 1〜10 | `10` |
 | `lang` | レスポンス言語 | `ja`=日本語 / `en`=英語 | `ja` |
 
 > **⚠️ 重要 — 日付フィルタの AND 条件に注意**  
@@ -78,7 +78,11 @@ Microsoft Security Copilot 用カスタムプラグインです。\
 > | 更新日で絞り込む | **`n`** | `m` | **`n`** |
 > | 全期間取得 | `n` | `n` | `n` |
 
-> **日付の絶対指定について：** 「2025年1月1日以降」のような絶対日付で絞り込む場合は `rangeDatePublic=n, rangeDatePublished=n, rangeDateFirstPublished=n` で取得し、レスポンスの `dc:date` フィールドで Security Copilot に絞り込みを任せてください。
+> **⚠️ 重要 — severity（深刻度）は省略不可**  
+> `severity=n`（全深刻度）は使用できません。必ず `c` / `h` / `m` / `l` のいずれかを指定してください。  
+> 「全深刻度」「フィルタなし」と指示された場合は `h`（High以上）を使用してください。
+
+> **日付の絶対指定について：** 「2025年1月1日以降」のような絶対日付での絞り込みはこの API ではサポートしていません。期間コード（`w`/`m`/`n`）のみ使用できます。
 
 ---
 
